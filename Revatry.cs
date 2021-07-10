@@ -79,13 +79,11 @@ namespace RevatryFramework
         ///<summary>
         ///Listen for get requests
         ///</summary>
-        public async void ListenForPages() //,string message Get Action<HttpListenerResponse> method
+        public async void ListenForPages()
         {
 
-            //string dir,
-            while (!serverStop)//serverstop
+           while (!serverStop)
            {
-                 //dt = null;
 
                 var dt = await server.GetContextAsync();
                 var req = dt.Request;
@@ -98,23 +96,22 @@ namespace RevatryFramework
                
                 var urlSize = url.Length;
                 
-                //var dirData = dir.Split('/');
+
 
                 for (int i = 0; i < urlSize - 1 ; i++)
                     {
 
                         
-                        if(pages.Exists(find => find.relativePath == url[i + 1]))//dirData[i] Find
+                        if(pages.Exists(find => find.relativePath == url[i + 1]))
                         {
                         var id = pages.FindIndex(find => find.relativePath == url[i + 1]);
                         //Use method to do extra stuff
                         pages[id].methodToCall(res);
-                          //  method(res);
+                          
                         }
                         else
                         {
                             //TODO: REDIRECT TO ERROR PAGE
-                          //  Redirect(serverUrl + "/404", res);
                             Send("404", res);
                             EndRequest(res);
 
@@ -157,19 +154,18 @@ namespace RevatryFramework
 
         public void SessionGenerate(string session_name,HttpListenerResponse res)
         {
-            //CookieCollection cookies = new CookieCollection();
+
             Cookie cookie = new Cookie();
             cookie.Name = session_name;
             Session session = new Session();
             Sessions.Add(session);
             cookie.Value = session.key;
-            //cookies.Add(cookie);
             res.SetCookie(cookie);
         }
     }
 
     public class HttpServerNotInitalizedException: Exception{
-        public HttpServerNotInitalizedException():base("You did not started the server") //string ex
+        public HttpServerNotInitalizedException():base("You did not started the server")
         {
 
         }
