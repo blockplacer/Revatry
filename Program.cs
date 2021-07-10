@@ -18,7 +18,7 @@ namespace RevatryFramework
             revatry.pages.Add(new Page("test",testMethod));
             revatry.pages.Add(new Page("random", randomNumber));
             revatry.Listen();
-            revatry.Get(testMethod);//"test", 
+            revatry.ListenForPages();//testMethodGet
             Console.ReadKey();
         }
         static void testMethod(HttpListenerResponse res)

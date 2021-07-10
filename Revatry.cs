@@ -79,7 +79,7 @@ namespace RevatryFramework
         ///<summary>
         ///Listen for get requests
         ///</summary>
-        public async void Get(Action<HttpListenerResponse> method) //,string message
+        public async void ListenForPages() //,string message Get Action<HttpListenerResponse> method
         {
 
             //string dir,
