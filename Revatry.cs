@@ -38,8 +38,6 @@ namespace RevatryFramework
 
         public string sessionName = "Session";
 
-       // public Database db = new Database();
-
 
         public string LoadLibs = ""; //String for htmlstart stuff a easier thing to put your libs eg: Bulma, Bootstrap, JQuery etc.
 
@@ -98,14 +96,14 @@ namespace RevatryFramework
                 catch (HttpListenerException)
                 {
 
-                    Console.WriteLine("Too many requests done");
+                    //Happens if too many requests done temporary fix
                 }
             }
             catch (ObjectDisposedException)
             {
                 /*ISSUE 1: For some reason object gets disposed and causes crashes a temporary "solution" to prevent the issue 
                  * even though there is error page sent correctly probably something you should be safe*/
-                //throw;
+                //Temporary fix
             }
             
             
@@ -116,13 +114,12 @@ namespace RevatryFramework
         ///<summary>
         ///Listen for get requests (GET) for (POST) <code>ListenForData</code>
         ///</summary>
-        public async void ListenForPages() //,string message Get Action<HttpListenerResponse> method
+        public async void ListenForPages() 
         {
 
-            //string dir,
-            while (!serverStop)//serverstop
+            while (!serverStop)
            {
-                 //dt = null;
+
 
                 var dt = await server.GetContextAsync();
                 var req = dt.Request;
@@ -135,8 +132,6 @@ namespace RevatryFramework
                
                 var urlSize = url.Length;
 
-                //var dirData = dir.Split('/');
-
                 /*Redirect Web Socket requests to the Socketineer
                  * Windows 8/ Windows Server 2012/ Windows 10 / Windows Server 2016+ Is required
                  * */
@@ -144,30 +139,30 @@ namespace RevatryFramework
                 if (dt.Request.IsWebSocketRequest)
                 {
                    
-                    //ProcessRequest(listenerContext);
+                    
                 }
 
                 for (int i = 0; i < urlSize - 1 ; i++)
                     {
 
                         
-                        if(pages.Exists(find => find.relativePath == url[i + 1]))//dirData[i] Find
+                        if(pages.Exists(find => find.relativePath == url[i + 1]))
                         {
                         var id = pages.FindIndex(find => find.relativePath == url[i + 1]);
                         //Use method to do extra stuff
                         pages[id].methodToCall(res,req);
-                          //  method(res);
+                          
                         }
                         else
                         {
                             //TODO: REDIRECT TO ERROR PAGE
-                          //  Redirect(serverUrl + "/404", res);
+
                             Send("404", res);
                             EndRequest(res);
 
                         }
                     }
-               // }
+
             }
         }
 
@@ -185,6 +180,7 @@ namespace RevatryFramework
 
         public void EndRequest(HttpListenerResponse res)
         {
+            //Temporary fix until actual error has been fixed
             try
             {
                 res.OutputStream.Close();
@@ -193,7 +189,7 @@ namespace RevatryFramework
             catch (ObjectDisposedException)
             {
 
-               // throw;
+              
             }
 
         }
@@ -212,7 +208,6 @@ namespace RevatryFramework
 
         public void SessionGenerate(string session_name,HttpListenerResponse res)
         {
-            //CookieCollection cookies = new CookieCollection();
             Cookie cookie = new Cookie();
             sessionName = session_name;
             cookie.Name = sessionName;
@@ -220,7 +215,6 @@ namespace RevatryFramework
             session.generate();
             Sessions.Add(session);
             cookie.Value = session.key;
-            //cookies.Add(cookie);
             res.SetCookie(cookie);
         }
         /// <summary>
@@ -230,7 +224,7 @@ namespace RevatryFramework
         /// <returns>Session object variables list</returns>
         public List<object> GetSessionVariables(HttpListenerResponse req)
         {
-            return Sessions.Find(x => x.key == req.Cookies[sessionName].Value).variables;//"Session"
+            return Sessions.Find(x => x.key == req.Cookies[sessionName].Value).variables;
         }
 
         public void ResetSessionValues(HttpListenerRequest req)
@@ -261,8 +255,8 @@ namespace RevatryFramework
                 var valueKeeper = toReturn = Sessions.Find(x => x.key == req.Cookies[sessionName].Value).key;
                 if(valueKeeper != null)
                     toReturn = valueKeeper;
-            }/**/
-                return toReturn ;//"Session"
+            }
+                return toReturn ;
         }
 
         /// <summary>
@@ -271,10 +265,7 @@ namespace RevatryFramework
         public string TemplatingReplace(string variable,string toReplace,string html)
         {
             var code = "!!" + variable;
-            //var regex = new Regex(@"\b" + Regex.Escape(code));// + @"\b"
-            //var t = Regex.IsMatch(html, @"\b"+variable);
-            //Console.Write(t);
-            return new Regex(@"\b" + Regex.Escape(variable)).Replace(html, toReplace);// regex.Replace(html, toReplace); ;//" \+brst+"+"\b"
+            return new Regex(@"\b" + Regex.Escape(variable)).Replace(html, toReplace);// regex.Replace(html, toReplace); 
         }
 
         /// <summary>
@@ -286,7 +277,7 @@ namespace RevatryFramework
         }
         public string SendHtmlEnd()
         {
-            return "</body></html>"; //Send(, res);
+            return "</body></html>"; 
             
         }
         /// <summary>
@@ -316,7 +307,7 @@ namespace RevatryFramework
                     break;
                 default:
                     break;
-            }//if(requestType) == HTTPReqs.GET
+            }
 
             using (HttpWebResponse response = (HttpWebResponse) request.GetResponse())
             {
@@ -353,7 +344,7 @@ namespace RevatryFramework
     }
 
     public class HttpServerNotInitalizedException: Exception{
-        public HttpServerNotInitalizedException():base("You did not started the server") //string ex
+        public HttpServerNotInitalizedException():base("You did not started the server")
         {
 
         }
