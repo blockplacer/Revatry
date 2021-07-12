@@ -18,6 +18,7 @@ It does supports
 - Sessions (semi, not tested)
 - Pages and virtual pages
 - Fleck Compatibile
+
 Planned:
 
 - Templating using regex
