@@ -265,7 +265,7 @@ namespace RevatryFramework
         public string TemplatingReplace(string variable,string toReplace,string html)
         {
             var code = "!!" + variable;
-            return new Regex(@"\b" + Regex.Escape(variable)).Replace(html, toReplace);// regex.Replace(html, toReplace); 
+            return new Regex(@"\b" + Regex.Escape(variable)).Replace(html, toReplace);
         }
 
         /// <summary>
