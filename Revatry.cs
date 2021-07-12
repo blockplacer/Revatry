@@ -1,8 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.WebSockets;
+using Fleck;
 using System.Text;
+using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace RevatryFramework
@@ -28,6 +33,15 @@ namespace RevatryFramework
         public List<Session> Sessions = new List<Session>(); //Has sessions, sessions isnt permament if you reset server
 
         public List<Page> pages = new List<Page>(); //Contains pages 
+
+
+
+        public string sessionName = "Session";
+
+       // public Database db = new Database();
+
+
+        public string LoadLibs = ""; //String for htmlstart stuff a easier thing to put your libs eg: Bulma, Bootstrap, JQuery etc.
 
         //A constructor to initalize objects
         /// <summary>
@@ -69,21 +83,46 @@ namespace RevatryFramework
         public async void Send(string data,HttpListenerResponse res)
         {
 
-            var dataBytes = Encoding.UTF8.GetBytes(data);
-            var dataBytesLength = dataBytes.Length;
-            res.ContentLength64 = dataBytesLength;
-            await res.OutputStream.WriteAsync(dataBytes, 0, dataBytesLength);
+
+            try
+            {
+                var dataBytes = Encoding.UTF8.GetBytes(data);
+                var dataBytesLength = dataBytes.Length;
+                res.ContentLength64 += dataBytesLength;
+                try
+                {
+
+
+                await res.OutputStream.WriteAsync(dataBytes, 0, dataBytesLength);
+                }
+                catch (HttpListenerException)
+                {
+
+                    Console.WriteLine("Too many requests done");
+                }
+            }
+            catch (ObjectDisposedException)
+            {
+                /*ISSUE 1: For some reason object gets disposed and causes crashes a temporary "solution" to prevent the issue 
+                 * even though there is error page sent correctly probably something you should be safe*/
+                //throw;
+            }
+            
+            
 
         }
 
+
         ///<summary>
-        ///Listen for get requests
+        ///Listen for get requests (GET) for (POST) <code>ListenForData</code>
         ///</summary>
-        public async void ListenForPages()
+        public async void ListenForPages() //,string message Get Action<HttpListenerResponse> method
         {
 
-           while (!serverStop)
+            //string dir,
+            while (!serverStop)//serverstop
            {
+                 //dt = null;
 
                 var dt = await server.GetContextAsync();
                 var req = dt.Request;
@@ -95,23 +134,34 @@ namespace RevatryFramework
                 string[] url = req.RawUrl.Split('/');
                
                 var urlSize = url.Length;
-                
 
+                //var dirData = dir.Split('/');
+
+                /*Redirect Web Socket requests to the Socketineer
+                 * Windows 8/ Windows Server 2012/ Windows 10 / Windows Server 2016+ Is required
+                 * */
+
+                if (dt.Request.IsWebSocketRequest)
+                {
+                   
+                    //ProcessRequest(listenerContext);
+                }
 
                 for (int i = 0; i < urlSize - 1 ; i++)
                     {
 
                         
-                        if(pages.Exists(find => find.relativePath == url[i + 1]))
+                        if(pages.Exists(find => find.relativePath == url[i + 1]))//dirData[i] Find
                         {
                         var id = pages.FindIndex(find => find.relativePath == url[i + 1]);
                         //Use method to do extra stuff
-                        pages[id].methodToCall(res);
-                          
+                        pages[id].methodToCall(res,req);
+                          //  method(res);
                         }
                         else
                         {
                             //TODO: REDIRECT TO ERROR PAGE
+                          //  Redirect(serverUrl + "/404", res);
                             Send("404", res);
                             EndRequest(res);
 
@@ -135,9 +185,17 @@ namespace RevatryFramework
 
         public void EndRequest(HttpListenerResponse res)
         {
+            try
+            {
+                res.OutputStream.Close();
+                res.Close();
+            }
+            catch (ObjectDisposedException)
+            {
 
-            res.OutputStream.Close();
-            res.Close();
+               // throw;
+            }
+
         }
 
         ///<summary>
@@ -154,18 +212,148 @@ namespace RevatryFramework
 
         public void SessionGenerate(string session_name,HttpListenerResponse res)
         {
-
+            //CookieCollection cookies = new CookieCollection();
             Cookie cookie = new Cookie();
-            cookie.Name = session_name;
+            sessionName = session_name;
+            cookie.Name = sessionName;
             Session session = new Session();
+            session.generate();
             Sessions.Add(session);
             cookie.Value = session.key;
+            //cookies.Add(cookie);
             res.SetCookie(cookie);
         }
+        /// <summary>
+        /// Get session s variables
+        /// </summary>
+        /// <param name="req"></param>
+        /// <returns>Session object variables list</returns>
+        public List<object> GetSessionVariables(HttpListenerResponse req)
+        {
+            return Sessions.Find(x => x.key == req.Cookies[sessionName].Value).variables;//"Session"
+        }
+
+        public void ResetSessionValues(HttpListenerRequest req)
+        {
+            var id = Sessions.FindIndex(x => x.key == req.Cookies[sessionName].Value);
+            Sessions[id].variables = new List<object>(); //
+        }
+        /// <summary>
+        /// Destroys a session from the use
+        /// </summary>
+        /// <param name="req"></param>
+        public void DestroySession(HttpListenerRequest req)
+        {
+            var id = Sessions.FindIndex(x => x.key == req.Cookies[sessionName].Value);
+            Sessions[id].variables = null;
+            req.Cookies[sessionName].Expired = true;
+        }
+        /// <summary>
+        /// Session Key
+        /// </summary>
+        /// <param name="req"></param>
+        /// <returns>Returns session key if it exist, if it cant find one its going to return "AnErrorHappened" </returns>
+        public string GetSessionKey(HttpListenerResponse res,HttpListenerRequest req)
+        {
+            string toReturn = "AnErrorHappened"+ req.Cookies[sessionName].Value;
+            if (Sessions.Exists(x => x.key == req.Cookies[sessionName].Value))
+            {
+                var valueKeeper = toReturn = Sessions.Find(x => x.key == req.Cookies[sessionName].Value).key;
+                if(valueKeeper != null)
+                    toReturn = valueKeeper;
+            }/**/
+                return toReturn ;//"Session"
+        }
+
+        /// <summary>
+        /// Replaces variables inside of !!variable using regex
+        /// </summary>
+        public string TemplatingReplace(string variable,string toReplace,string html)
+        {
+            var code = "!!" + variable;
+            //var regex = new Regex(@"\b" + Regex.Escape(code));// + @"\b"
+            //var t = Regex.IsMatch(html, @"\b"+variable);
+            //Console.Write(t);
+            return new Regex(@"\b" + Regex.Escape(variable)).Replace(html, toReplace);// regex.Replace(html, toReplace); ;//" \+brst+"+"\b"
+        }
+
+        /// <summary>
+        /// Sends stuff like <code><html>etc.</html></code> You can add bulma, bootstrap, jquery etc. by modifying loadReplace!
+        /// </summary>
+        public string SendHtmlStart(string title)
+        {
+            return TemplatingReplace("PLACEHOLDER__LOAD_STUFF",LoadLibs, TemplatingReplace("__PLACEHOLDER_TITLE ", title, " <html><head> <title> __PLACEHOLDER_TITLE </title> PLACEHOLDER__LOAD_STUFF </head><body>"));//Send(,res);
+        }
+        public string SendHtmlEnd()
+        {
+            return "</body></html>"; //Send(, res);
+            
+        }
+        /// <summary>
+        /// Simple optmization
+        /// </summary>
+        /// <param name="html">Text</param>
+        /// <returns>html document</returns>
+        public string optimizeHtml(string html)
+        { return html.Replace(" ", "").Replace(" !important","!important"); }
+
+        /// <summary>
+        /// You can use this for proxy, apis etc.
+        /// Currently Only Supports GET and POST
+        /// </summary>
+        public string Request(HTTPReqs requestType,string url)
+        {
+            string toReturn = "";
+            HttpWebRequest request = (HttpWebRequest)HttpWebRequest.Create(url);
+            
+            switch (requestType)
+            {
+                case HTTPReqs.POST:
+                    request.Method = "POST";
+                    break;
+                case HTTPReqs.GET:
+                    request.Method = "GET";
+                    break;
+                default:
+                    break;
+            }//if(requestType) == HTTPReqs.GET
+
+            using (HttpWebResponse response = (HttpWebResponse) request.GetResponse())
+            {
+                Stream dt = response.GetResponseStream();
+                StreamReader read = new StreamReader(dt);
+                toReturn = read.ReadToEnd();
+                read.Close();
+                dt.Close();
+            }
+            return toReturn;
+        }
+
+        /// <summary>
+        /// Use <code>EscapeFileLocation(text)</code> if you going to give user accces to reader urls
+        /// </summary>
+        /// <param name="location"></param>
+        /// <returns></returns>
+        public string LoadFile(string location)
+        {
+            return File.ReadAllText(location);
+        }
+
+        /// <summary>
+        /// Path traversal prevention
+        /// SEE: Path Trevarsal Vulnerability is a vulnerability that pages fetch data from server
+        /// can receive directory parameters could be used to read sensitive information
+        /// might result in leak of confidental data.
+        /// </summary>
+        /// <param name="location">Text</param>
+        /// <returns>gives back a string doesnt have any path command strings</returns>
+        public string EscapeFileLocation(string location)
+        { return location.Replace("/", "").Replace(".", "").Replace(@"\", ""); }
+
     }
 
     public class HttpServerNotInitalizedException: Exception{
-        public HttpServerNotInitalizedException():base("You did not started the server")
+        public HttpServerNotInitalizedException():base("You did not started the server") //string ex
         {
 
         }

@@ -37,12 +37,14 @@ namespace RevatryFramework
         //public string[] parameters; //The variable contains parameters
 
 
-        public Action<HttpListenerResponse> methodToCall = null; //Gets called if detector finds the page
+        public Action<HttpListenerResponse,HttpListenerRequest> methodToCall = null; //Gets called if detector finds the page
 
-        public Page(string path,Action<HttpListenerResponse> call)
+        public Page(string path,Action<HttpListenerResponse,HttpListenerRequest> call)
         {
             relativePath = path;
             methodToCall = call;
         }
+
+        HTTPReqs reqType = new HTTPReqs();
     }
 }

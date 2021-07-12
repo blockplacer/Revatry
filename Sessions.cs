@@ -14,9 +14,10 @@ namespace RevatryFramework
 
         //Prediction Prevention
         public static RNGCryptoServiceProvider rng = new RNGCryptoServiceProvider();
-        public string key;
+        public string key = "";
 
 
+        public List<object> variables = new List<object>();
         /// <summary>
         /// A method that generates secure token keys
         /// </summary>
@@ -24,11 +25,11 @@ namespace RevatryFramework
         {
             byte[] randomData = new byte[30];
 
-            rng.GetBytes(randomData);
+            rng.GetBytes(randomData,0,30);
 
             for (int i = 0; i < randomData.Length; i++)
             {
-                key = randomData[i].ToString();
+                key += randomData[i];
             }
             
 
