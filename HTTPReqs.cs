@@ -19,5 +19,6 @@ namespace RevatryFramework
     {
         POST,
         GET,
+        PUT,
     }
 }
