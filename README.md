@@ -25,6 +25,8 @@ It does supports
 Planned:
 
 - Html Compression (server side
+
+
 Dependencies:
 - Fleck
 - HttpListener (Only available on windows 8 and later operating systems due only win 11, win 10, win 8 (including server os based on these osses) supports http.sys)
