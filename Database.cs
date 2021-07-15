@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -25,8 +25,8 @@ namespace RevatryFramework
         /// </summary>
         /// <param name="data">The JSON</param>
         /// <returns>Database objects</returns>
-        public static Database LoadFromJSON(string data) //string
-        { return JsonConvert.DeserializeObject<Database>(data); }//JsonConvert.SerializeObject(this);  return
+        public static Database LoadFromJSON(string data)
+        { return JsonConvert.DeserializeObject<Database>(data); }
 
 
 
@@ -53,17 +53,17 @@ namespace RevatryFramework
         {
             var found = Tables.Find(x => x.name == table);
             int id = found.items[found.primary].items.FindIndex(x => (int)x == identifier);
-             return found.items[id].items[id];//.items.ToList().Find(x => x.name == Row).items
+             return found.items[id].items[id];
         }
     }
 
     public class Table
     {
-        public Row[] items;//object object
+        public Row[] items;
         public string name;
         public int primary = 0; //Key Item ID to check by doing that it could find id
         public Table(string name,int RowCount)
-        {  items = new Row[RowCount];  this.name = name; }//10
+        {  items = new Row[RowCount];  this.name = name; }
 
 
     }
