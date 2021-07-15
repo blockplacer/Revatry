@@ -63,7 +63,7 @@ namespace RevatryFramework
         static string dbb = db.Serialize();
         static async void googleAsync(HttpListenerResponse res, HttpListenerRequest req)
         {
-            bobux = revatry.Request(HTTPReqs.GET, "https://cubely.xyz");
+            bobux = revatry.Request(HTTPReqs.GET, "https://discord.com");
 
             revatry.Send(bobux, res);
 

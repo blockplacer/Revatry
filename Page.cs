@@ -37,12 +37,33 @@ namespace RevatryFramework
         //public string[] parameters; //The variable contains parameters
 
 
-        public Action<HttpListenerResponse,HttpListenerRequest> methodToCall = null; //Gets called if detector finds the page
+        public Action<HttpListenerResponse,HttpListenerRequest> methodToCallGet = null; //Gets called if detector finds the page, for get requests
+        public Action<HttpListenerResponse, HttpListenerRequest> methodToCallPost = null;
+        public Action<HttpListenerResponse, HttpListenerRequest> methodToCallPut = null;
+        public Action<HttpListenerResponse, HttpListenerRequest> methodToCallDelete = null;
 
+        //public string method = "GET"; //It could been POST,GET,PUT,DELETE
         public Page(string path,Action<HttpListenerResponse,HttpListenerRequest> call)
         {
             relativePath = path;
-            methodToCall = call;
+            methodToCallGet = call;
+        }
+        public Page(string path)
+        {
+            relativePath = path;
+        }
+        public Page(string path, Action<HttpListenerResponse, HttpListenerRequest> get, Action<HttpListenerResponse, HttpListenerRequest> post)
+        {
+            relativePath = path;
+            methodToCallGet = get;
+            methodToCallPost = post;
+        }
+        public Page(string path, Action<HttpListenerResponse, HttpListenerRequest> get, Action<HttpListenerResponse, HttpListenerRequest> post, Action<HttpListenerResponse, HttpListenerRequest> put)
+        {
+            relativePath = path;
+            methodToCallGet = get;
+            methodToCallPost = post;
+            methodToCallPut = put;
         }
 
         HTTPReqs reqType = new HTTPReqs();

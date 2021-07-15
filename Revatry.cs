@@ -9,6 +9,8 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Drawing;
+
 
 namespace RevatryFramework
 {
@@ -33,13 +35,23 @@ namespace RevatryFramework
         public List<Session> Sessions = new List<Session>(); //Has sessions, sessions isnt permament if you reset server
 
         public List<Page> pages = new List<Page>(); //Contains pages 
-
-
+        public string AggregatedCSS;
+        public string AggregatedFileCSS;
 
         public string sessionName = "Session";
 
+        // public Database db = new Database();
 
-        public string LoadLibs = ""; //String for htmlstart stuff a easier thing to put your libs eg: Bulma, Bootstrap, JQuery etc.
+        public List<FELib> feLibs = new List<FELib>();//ArrayList()
+
+        
+        /// <summary>
+        /// Combines stuff into single file
+        /// Enable this on production
+        /// </summary>
+        public bool Aggregation = false;
+
+        //public string LoadLibs = ""; //String for htmlstart stuff a easier thing to put your libs eg: Bulma, Bootstrap, JQuery etc.
 
         //A constructor to initalize objects
         /// <summary>
@@ -81,12 +93,12 @@ namespace RevatryFramework
         public async void Send(string data,HttpListenerResponse res)
         {
 
-
+            //res.
             try
             {
                 var dataBytes = Encoding.UTF8.GetBytes(data);
                 var dataBytesLength = dataBytes.Length;
-                res.ContentLength64 += dataBytesLength;
+                res.ContentLength64 = dataBytesLength;//+
                 try
                 {
 
@@ -95,15 +107,15 @@ namespace RevatryFramework
                 }
                 catch (HttpListenerException)
                 {
-
-                    //Happens if too many requests done temporary fix
+                    //Temporary Fix: Proper fix going to be done in future
+                    //Console.WriteLine("Too many requests done");
                 }
             }
             catch (ObjectDisposedException)
             {
                 /*ISSUE 1: For some reason object gets disposed and causes crashes a temporary "solution" to prevent the issue 
                  * even though there is error page sent correctly probably something you should be safe*/
-                //Temporary fix
+                //throw;
             }
             
             
@@ -113,13 +125,15 @@ namespace RevatryFramework
 
         ///<summary>
         ///Listen for get requests (GET) for (POST) <code>ListenForData</code>
+        ///<code>Listen()</code> Should been called before
         ///</summary>
-        public async void ListenForPages() 
+        public async void ListenForPages() //,string message Get Action<HttpListenerResponse> method
         {
 
-            while (!serverStop)
+            //string dir,
+            while (!serverStop)//serverstop
            {
-
+                 //dt = null;
 
                 var dt = await server.GetContextAsync();
                 var req = dt.Request;
@@ -132,6 +146,8 @@ namespace RevatryFramework
                
                 var urlSize = url.Length;
 
+                //var dirData = dir.Split('/');
+
                 /*Redirect Web Socket requests to the Socketineer
                  * Windows 8/ Windows Server 2012/ Windows 10 / Windows Server 2016+ Is required
                  * */
@@ -139,30 +155,50 @@ namespace RevatryFramework
                 if (dt.Request.IsWebSocketRequest)
                 {
                    
-                    
+                    //ProcessRequest(listenerContext);
                 }
+                
 
                 for (int i = 0; i < urlSize - 1 ; i++)
                     {
 
                         
-                        if(pages.Exists(find => find.relativePath == url[i + 1]))
+                        if(pages.Exists(find => find.relativePath == url[i + 1]))//dirData[i] Find
                         {
                         var id = pages.FindIndex(find => find.relativePath == url[i + 1]);
                         //Use method to do extra stuff
-                        pages[id].methodToCall(res,req);
-                          
+                            if(req.HttpMethod.ToUpper() == "GET")
+                        {
+                            if(pages[id].methodToCallGet != null)
+                            pages[id].methodToCallGet(res,req);
                         }
+                        if (req.HttpMethod.ToUpper() == "POST")
+                        {
+                            if (pages[id].methodToCallPost != null)
+                                pages[id].methodToCallPost(res, req);
+                        }
+                        if (req.HttpMethod.ToUpper() == "PUT")
+                        {
+                            if (pages[id].methodToCallPut != null)
+                                pages[id].methodToCallPut(res, req);
+                        }
+                        if (req.HttpMethod.ToUpper() == "DELETE")
+                        {
+                            if (pages[id].methodToCallDelete != null)
+                                pages[id].methodToCallDelete(res, req);
+                        }
+                        //  method(res);
+                    }
                         else
                         {
                             //TODO: REDIRECT TO ERROR PAGE
-
+                          //  Redirect(serverUrl + "/404", res);
                             Send("404", res);
                             EndRequest(res);
 
                         }
                     }
-
+               // }
             }
         }
 
@@ -180,7 +216,6 @@ namespace RevatryFramework
 
         public void EndRequest(HttpListenerResponse res)
         {
-            //Temporary fix until actual error has been fixed
             try
             {
                 res.OutputStream.Close();
@@ -189,7 +224,7 @@ namespace RevatryFramework
             catch (ObjectDisposedException)
             {
 
-              
+               // throw;
             }
 
         }
@@ -208,6 +243,7 @@ namespace RevatryFramework
 
         public void SessionGenerate(string session_name,HttpListenerResponse res)
         {
+            //CookieCollection cookies = new CookieCollection();
             Cookie cookie = new Cookie();
             sessionName = session_name;
             cookie.Name = sessionName;
@@ -215,6 +251,7 @@ namespace RevatryFramework
             session.generate();
             Sessions.Add(session);
             cookie.Value = session.key;
+            //cookies.Add(cookie);
             res.SetCookie(cookie);
         }
         /// <summary>
@@ -224,7 +261,7 @@ namespace RevatryFramework
         /// <returns>Session object variables list</returns>
         public List<object> GetSessionVariables(HttpListenerResponse req)
         {
-            return Sessions.Find(x => x.key == req.Cookies[sessionName].Value).variables;
+            return Sessions.Find(x => x.key == req.Cookies[sessionName].Value).variables;//"Session"
         }
 
         public void ResetSessionValues(HttpListenerRequest req)
@@ -255,8 +292,8 @@ namespace RevatryFramework
                 var valueKeeper = toReturn = Sessions.Find(x => x.key == req.Cookies[sessionName].Value).key;
                 if(valueKeeper != null)
                     toReturn = valueKeeper;
-            }
-                return toReturn ;
+            }/**/
+                return toReturn ;//"Session"
         }
 
         /// <summary>
@@ -265,19 +302,84 @@ namespace RevatryFramework
         public string TemplatingReplace(string variable,string toReplace,string html)
         {
             var code = "!!" + variable;
-            return new Regex(@"\b" + Regex.Escape(variable)).Replace(html, toReplace);
+            //var regex = new Regex(@"\b" + Regex.Escape(code));// + @"\b"
+            //var t = Regex.IsMatch(html, @"\b"+variable);
+            //Console.Write(t);
+            return new Regex(@"\b" + Regex.Escape(variable)).Replace(html, toReplace);// regex.Replace(html, toReplace); ;//" \+brst+"+"\b"
         }
+
+
+        public string LoadLibs;
+
+
+
+
 
         /// <summary>
         /// Sends stuff like <code><html>etc.</html></code> You can add bulma, bootstrap, jquery etc. by modifying loadReplace!
+        /// You should call <code>GenerateLoadLibs()</code> before!
+        /// 
+        /// Your html should has "PLACEHOLDER__LOAD_STUFF" and "__PLACEHOLDER_TITLE"
+        /// 
         /// </summary>
         public string SendHtmlStart(string title)
         {
-            return TemplatingReplace("PLACEHOLDER__LOAD_STUFF",LoadLibs, TemplatingReplace("__PLACEHOLDER_TITLE ", title, " <html><head> <title> __PLACEHOLDER_TITLE </title> PLACEHOLDER__LOAD_STUFF </head><body>"));//Send(,res);
+            var toReturn = TemplatingReplace("PLACEHOLDER__LOAD_STUFF", LoadLibs, TemplatingReplace("__PLACEHOLDER_TITLE ", title, " <html><head> <title> __PLACEHOLDER_TITLE </title> PLACEHOLDER__LOAD_STUFF </head><body>"));//Send(,res);;
+            if(Aggregation)
+                toReturn = TemplatingReplace("PLACEHOLDER__LOAD_STUFF", "<link rel=\"javascript\" href=\""+AggregatedFileCSS+ "\"> ", TemplatingReplace("__PLACEHOLDER_TITLE ", title, " <html><head> <title> __PLACEHOLDER_TITLE </title> PLACEHOLDER__LOAD_STUFF </head><body>"));
+            return toReturn;
+        }
+        /// <summary>
+        /// Generates Starting Code
+        /// </summary>
+        public void GenerateLoadLibs()
+        {
+             LoadLibs = ""; //var
+            for (int i = 0; i < feLibs.Count; i++)
+            {
+                if(!Aggregation)
+                {
+                    if (feLibs[i].type == FELibType.Css)
+                        LoadLibs += "<link rel=\"stylesheet\" href=\"";
+                    if (feLibs[i].type == FELibType.Js)
+                        LoadLibs += "<link rel=\"javascript\" href=\"";
+                    LoadLibs += feLibs[i].url;
+                    LoadLibs+= "\"> ";
+                }
+                else
+                {
+                    AggregatedCSS += Request(HTTPReqs.GET,feLibs[i].url);
+                    AggregatedFileCSS = randomString(15) + ".css";
+                    pages.Add(new Page(AggregatedFileCSS,AggregatedGet));
+                }
+            }
+
+        }
+       
+        public void AggregatedGet(HttpListenerResponse res,HttpListenerRequest req)
+        {
+            Send(AggregatedCSS, res);
+        }
+        public Random rnd = new Random();
+        /// <summary>
+        /// Generates random string
+        /// </summary>
+        /// <param name="length">Length of string to generate</param>
+        /// <returns>Random String</returns>
+        public string randomString(int length)
+        {
+            string alphabet = "ABCDEFGHIJKLMNOPRSTUVYZXW";
+            var alphabet_Array = alphabet.ToCharArray();
+            var randomizedString = "";
+            for (int i = 0; i < length; i++)
+            {
+                randomizedString += alphabet_Array[rnd.Next(0,alphabet_Array.Length-1)];//i
+            }
+            return randomizedString;
         }
         public string SendHtmlEnd()
         {
-            return "</body></html>"; 
+            return "</body></html>"; //Send(, res);
             
         }
         /// <summary>
@@ -307,7 +409,7 @@ namespace RevatryFramework
                     break;
                 default:
                     break;
-            }
+            }//if(requestType) == HTTPReqs.GET
 
             using (HttpWebResponse response = (HttpWebResponse) request.GetResponse())
             {
@@ -340,11 +442,73 @@ namespace RevatryFramework
         /// <returns>gives back a string doesnt have any path command strings</returns>
         public string EscapeFileLocation(string location)
         { return location.Replace("/", "").Replace(".", "").Replace(@"\", ""); }
+        /// <summary>
+        /// Sends binary data such as sound, video, pictures
+        /// </summary>
+        /// <param name="pictureData">It could been picture or video etc. data you need use a function to convert it to byte array</param>
+        /// <param name="mime">Mime type use Mime class to retrieve string</param>
+        /// <param name="res">Response</param>
+        public void SendBinary(byte[] pictureData,string mime,HttpListenerResponse res)//Mime
+        {
+            SetHeaders(res, HttpResponseHeader.CacheControl, "Cache", mime);
+            var dataBytes = pictureData;//Encoding.UTF8.GetBytes(data)
+            var dataBytesLength = dataBytes.Length;
+            res.ContentLength64 = dataBytesLength;
+            EndRequest(res);
+        }
+        /// <summary>
+        /// Gets query string
+        /// </summary>
+        /// <param name="variable">Variable to get</param>
+        /// <param name="req">Request</param>
+        /// <returns>Query String if it cant find its going to be not defined</returns>
+        public string QueryString(string variable, HttpListenerRequest req)
+        { string toReturn = null;  if(req.QueryString[variable] != null) toReturn = req.QueryString[variable]; return toReturn; }
+        /// <summary>
+        /// Resets server entirely including virtual pages
+        /// </summary>
+        public void ResetServer()
+        { pages.Clear(); Sessions.Clear(); server.Stop(); server.Start(); }
 
-    }
+        /// <summary>
+        /// Put this into an infinite loop like connecting into a page going to do run that
+        /// but this going to request to same page
+        /// so infinite loop, this can also be used to simulate a Dos attack or ddos attacks if done on multiple computers/tabs
+        /// </summary>
+        public void StressTest(Page page)
+        { Request(HTTPReqs.GET, page.relativePath); }
+
+
+
+        /// <summary>
+        /// Adds bulma from cdn to your site
+        /// </summary>
+        public void AddBulma()
+        { feLibs.Add(new FELib("https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css", FELibType.Css)); }
+        /// <summary>
+        /// Use this for serving resources/static pages
+        /// </summary>
+        /// <param name="data">Html data</param>
+        /// <param name="res">Respone</param>
+        /// <param name="req">Request</param>
+        public void StaticPage(string data,HttpListenerResponse res,HttpListenerRequest req)
+        { Send(data, res); }
+
+        public byte[] BitmapToBytes(Bitmap bmp, System.Drawing.Imaging.ImageFormat format)
+        {
+            using (var stream = new MemoryStream())
+            {
+
+                bmp.Save(stream,format);//System.Drawing.Imaging.ImageFormat.Jpeg
+
+                return stream.ToArray();
+
+            }
+        }
+        }
 
     public class HttpServerNotInitalizedException: Exception{
-        public HttpServerNotInitalizedException():base("You did not started the server")
+        public HttpServerNotInitalizedException():base("You did not started the server") //string ex
         {
 
         }
