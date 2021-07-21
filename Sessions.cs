@@ -13,11 +13,11 @@ namespace RevatryFramework
 
 
         //Prediction Prevention
-        public static RNGCryptoServiceProvider rng = new RNGCryptoServiceProvider();
+       
         public string key = "";
 
 
-        public List<object> variables = new List<object>();
+        public List<SessionVariable> variables = new List<SessionVariable>();//objectobject
         /// <summary>
         /// A method that generates secure token keys
         /// </summary>
@@ -25,7 +25,7 @@ namespace RevatryFramework
         {
             byte[] randomData = new byte[30];
 
-            rng.GetBytes(randomData,0,30);
+            RevatryHTTP.rng.GetBytes(randomData,0,30);
 
             for (int i = 0; i < randomData.Length; i++)
             {
@@ -35,5 +35,22 @@ namespace RevatryFramework
 
 
         }
+        public Session(string key)
+        { this.key = key; }
+        public Session()
+        { }
+    }
+
+    public class SessionVariable
+    {
+        public string name;
+        public object variable;
+        /// <summary>
+        /// An easy to use session variable holder
+        /// </summary>
+        /// <param name="name">Name of the variable so you can easily call it</param>
+        /// <param name="variable">Variable itself</param>
+        public SessionVariable(string name,object variable)
+        { this.name = name; this.variable = variable; }
     }
 }

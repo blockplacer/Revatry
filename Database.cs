@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -25,8 +25,8 @@ namespace RevatryFramework
         /// </summary>
         /// <param name="data">The JSON</param>
         /// <returns>Database objects</returns>
-        public static Database LoadFromJSON(string data)
-        { return JsonConvert.DeserializeObject<Database>(data); }
+        public static Database LoadFromJSON(string data) //string
+        { return JsonConvert.DeserializeObject<Database>(data); }//JsonConvert.SerializeObject(this);  return
 
 
 
@@ -43,27 +43,32 @@ namespace RevatryFramework
             Tables.Find(x => x.name == table).items.ToList().Find(x => x.name == Row).items.Add(obj);
 
         }
+
+        public void AddRow(string table,Row row)
+        {
+            Tables.Find(x => x.name == table).items.ToList().Add(row);
+        }
         /// <summary>
         /// Retrieves item easly from a row
         /// </summary>
         /// <param name="table">Table contains row</param>
         /// <param name="idRow">Identifier row,Contains key to find data</param>
         /// <param name="identifier">To Search (must be int currently in future this going to be expanded to strings)</param>
-        public object GetItem(string table,string Row, int identifier)
+        public object GetItem(string table, int identifier)
         {
             var found = Tables.Find(x => x.name == table);
             int id = found.items[found.primary].items.FindIndex(x => (int)x == identifier);
-             return found.items[id].items[id];
+             return found.items[id].items[id];//.items.ToList().Find(x => x.name == Row).items
         }
     }
 
     public class Table
     {
-        public Row[] items;
+        public Row[] items;//object object
         public string name;
         public int primary = 0; //Key Item ID to check by doing that it could find id
         public Table(string name,int RowCount)
-        {  items = new Row[RowCount];  this.name = name; }
+        {  items = new Row[RowCount];  this.name = name; }//10
 
 
     }
@@ -78,6 +83,8 @@ namespace RevatryFramework
             items.Add(obj);
         }
 
+        public Row()
+        { }
         public Row(string name)
         {
             this.name = name;

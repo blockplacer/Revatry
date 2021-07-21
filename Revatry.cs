@@ -10,7 +10,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Drawing;
-
+using System.Security.Cryptography;
 
 namespace RevatryFramework
 {
@@ -40,6 +40,8 @@ namespace RevatryFramework
 
         public string sessionName = "Session";
 
+        // public Database db = new Database();
+
         public List<FELib> feLibs = new List<FELib>();//ArrayList()
 
         
@@ -49,6 +51,7 @@ namespace RevatryFramework
         /// </summary>
         public bool Aggregation = false;
 
+        //public string LoadLibs = ""; //String for htmlstart stuff a easier thing to put your libs eg: Bulma, Bootstrap, JQuery etc.
 
         //A constructor to initalize objects
         /// <summary>
@@ -89,6 +92,8 @@ namespace RevatryFramework
         ///</summary>
         public async void Send(string data,HttpListenerResponse res)
         {
+
+            //res.
             try
             {
                 var dataBytes = Encoding.UTF8.GetBytes(data);
@@ -103,7 +108,7 @@ namespace RevatryFramework
                 catch (HttpListenerException)
                 {
                     //Temporary Fix: Proper fix going to be done in future
-                    
+                    //Console.WriteLine("Too many requests done");
                 }
             }
             catch (ObjectDisposedException)
@@ -117,16 +122,27 @@ namespace RevatryFramework
 
         }
 
+        void TaskReporting(ref Task task,string url)
+        {
+            foreach (var e in task.Exception.InnerExceptions)
+            {
+                Console.WriteLine("Exception happened on url" + url, "Exception is:" + e.Message);
+            }
+            task.Dispose();
+        }
 
         ///<summary>
         ///Listen for get requests (GET) for (POST) <code>ListenForData</code>
         ///<code>Listen()</code> Should been called before
         ///</summary>
-        public async void ListenForPages()
+        public async void ListenForPages() //,string message Get Action<HttpListenerResponse> method
         {
 
-            while (!serverStop)
+            //string dir,
+            while (!serverStop)//serverstop
            {
+                 //dt = null;
+
                 var dt = await server.GetContextAsync();
                 var req = dt.Request;
 
@@ -138,6 +154,8 @@ namespace RevatryFramework
                
                 var urlSize = url.Length;
 
+                //var dirData = dir.Split('/');
+
                 /*Redirect Web Socket requests to the Socketineer
                  * Windows 8/ Windows Server 2012/ Windows 10 / Windows Server 2016+ Is required
                  * */
@@ -145,39 +163,97 @@ namespace RevatryFramework
                 if (dt.Request.IsWebSocketRequest)
                 {
                    
-                    
+                    //ProcessRequest(listenerContext);
                 }
-                
+
+                //This is for supporting virtual directories
+                string fullurl = "";//UU
+                int completion = 0;
 
                 for (int i = 0; i < urlSize - 1 ; i++)
                     {
-
                         
-                        if(pages.Exists(find => find.relativePath == url[i + 1]))
+                        if (completion !=  urlSize - 1 )
+                    {
+                        fullurl += url[i+1];
+                        completion++;
+                       
+                    }
+                }
+                // Console.WriteLine(completion);
+                // Console.WriteLine(fullurl);
+
+                if (completion == urlSize - 1)
+                    {
+                        if (pages.Exists(find => find.relativePath == fullurl ))//dirData[i] Find url[i + 1]
                         {
-                        var id = pages.FindIndex(find => find.relativePath == url[i + 1]);
-                        //Use method to do extra stuff
-                            if(req.HttpMethod.ToUpper() == "GET")
+                        var id = pages.FindIndex(find => find.relativePath == fullurl);//url[i + 1]
+
+                                                                                //Use method to do extra stuff
+                            if (req.HttpMethod.ToUpper() == "GET")
                         {
                             if(pages[id].methodToCallGet != null)
-                            pages[id].methodToCallGet(res,req);
+                            {
+                                Task get = new Task(() => pages[id].methodToCallGet(res, req));
+                                get.Start();
+                                if (get.IsCompleted)
+                                    get.Dispose();
+                                if (get.IsFaulted)
+                                    TaskReporting(ref get, fullurl);
+                                    //get.Dispose();
+                                if (get.IsCanceled)
+                                    get.Dispose();
+                                //get.Join();
+
+                                //EndRequest(res);
+                            }
+                            //var get = new Thread(() => pages[id].methodToCallGet(res,req), 1024 * 1024);
                         }
                         if (req.HttpMethod.ToUpper() == "POST")
                         {
                             if (pages[id].methodToCallPost != null)
-                                pages[id].methodToCallPost(res, req);
-                        }
+                                {
+                               // pages[id].methodToCallPost(res, req);
+                                 Task post = new Task(() => pages[id].methodToCallPost(res, req));//)
+                                  post.Start();
+                                  if (post.IsCompleted)
+                                      post.Dispose();
+                                  if (post.IsFaulted)
+                                    TaskReporting(ref post, fullurl);
+                                //post.Dispose();
+                                if (post.IsCanceled)
+                                      post.Dispose();/**/
+                            }
+                            }
                         if (req.HttpMethod.ToUpper() == "PUT")
                         {
                             if (pages[id].methodToCallPut != null)
-                                pages[id].methodToCallPut(res, req);
+                            {
+                                Task put = new Task(() => pages[id].methodToCallPut(res, req));
+                                put.Start();
+                                if (put.IsCompleted)
+                                    put.Dispose();
+                                if (put.IsFaulted)
+                                    TaskReporting(ref put, fullurl);
+                                if (put.IsCanceled)
+                                    put.Dispose();
+                            }
                         }
                         if (req.HttpMethod.ToUpper() == "DELETE")
                         {
                             if (pages[id].methodToCallDelete != null)
-                                pages[id].methodToCallDelete(res, req);
+                            {
+                               Task delete = new Task(() => pages[id].methodToCallDelete(res, req));
+                                delete.Start();
+                                if (delete.IsCompleted)
+                                    delete.Dispose();
+                                if (delete.IsFaulted)
+                                    TaskReporting(ref delete, fullurl);
+                                if (delete.IsCanceled)
+                                    delete.Dispose();
+                            }
                         }
-                        
+                        //  method(res);
                     }
                         else
                         {
@@ -188,7 +264,8 @@ namespace RevatryFramework
 
                         }
                     }
-               // }
+                
+                // }
             }
         }
 
@@ -230,17 +307,19 @@ namespace RevatryFramework
             res.ContentType = mime;
             res.StatusCode = (int)HttpStatusCode.OK;
         }
-
+        public static RNGCryptoServiceProvider rng = new RNGCryptoServiceProvider();
         public void SessionGenerate(string session_name,HttpListenerResponse res)
         {
-
+            //CookieCollection cookies = new CookieCollection();
             Cookie cookie = new Cookie();
             sessionName = session_name;
             cookie.Name = sessionName;
             Session session = new Session();
             session.generate();
-            Sessions.Add(session);
             cookie.Value = session.key;
+
+            Sessions.Add(session);
+            //cookies.Add(cookie);
             res.SetCookie(cookie);
         }
         /// <summary>
@@ -248,15 +327,34 @@ namespace RevatryFramework
         /// </summary>
         /// <param name="req"></param>
         /// <returns>Session object variables list</returns>
-        public List<object> GetSessionVariables(HttpListenerResponse req)
+        public List<SessionVariable> GetSessionVariables(HttpListenerRequest req) // object
         {
             return Sessions.Find(x => x.key == req.Cookies[sessionName].Value).variables;//"Session"
+        }
+        public void SetSessionName(string name)
+        { sessionName = name; }
+        public SessionVariable GetSessionVariable(HttpListenerRequest req,string name) // object
+        {
+            var varhold = Sessions.Find(x => x.key == req.Cookies[sessionName].Value).variables;
+            return varhold.Find(x => x.name == name);//"Session"
         }
 
         public void ResetSessionValues(HttpListenerRequest req)
         {
             var id = Sessions.FindIndex(x => x.key == req.Cookies[sessionName].Value);
-            Sessions[id].variables = new List<object>(); //
+            Sessions[id].variables = new List<SessionVariable>(); // object
+        }
+        public void AddSessionVariable(HttpListenerRequest req, SessionVariable obj)//object
+        {
+
+            var id = Sessions.FindIndex(x => x.key == req.Cookies[sessionName].Value);
+            if (id == -1)
+                Sessions.Add(new Session(req.Cookies[sessionName].Value));
+            id = Sessions.FindIndex(x => x.key == req.Cookies[sessionName].Value);
+            if (id == -1)
+                Sessions.Add(new Session(req.Cookies[sessionName].Value));
+            Console.WriteLine(id);
+            Sessions[id].variables.Add(obj); //
         }
         /// <summary>
         /// Destroys a session from the use
@@ -281,8 +379,8 @@ namespace RevatryFramework
                 var valueKeeper = toReturn = Sessions.Find(x => x.key == req.Cookies[sessionName].Value).key;
                 if(valueKeeper != null)
                     toReturn = valueKeeper;
-            }
-            return toReturn ;
+            }/**/
+                return toReturn ;//"Session"
         }
 
         /// <summary>
@@ -291,7 +389,9 @@ namespace RevatryFramework
         public string TemplatingReplace(string variable,string toReplace,string html)
         {
             var code = "!!" + variable;
-
+            //var regex = new Regex(@"\b" + Regex.Escape(code));// + @"\b"
+            //var t = Regex.IsMatch(html, @"\b"+variable);
+            //Console.Write(t);
             return new Regex(@"\b" + Regex.Escape(variable)).Replace(html, toReplace);// regex.Replace(html, toReplace); ;//" \+brst+"+"\b"
         }
 
@@ -366,7 +466,7 @@ namespace RevatryFramework
         }
         public string SendHtmlEnd()
         {
-            return "</body></html>";
+            return "</body></html>"; //Send(, res);
             
         }
         /// <summary>
@@ -396,7 +496,7 @@ namespace RevatryFramework
                     break;
                 default:
                     break;
-            }
+            }//if(requestType) == HTTPReqs.GET
 
             using (HttpWebResponse response = (HttpWebResponse) request.GetResponse())
             {
@@ -435,12 +535,13 @@ namespace RevatryFramework
         /// <param name="pictureData">It could been picture or video etc. data you need use a function to convert it to byte array</param>
         /// <param name="mime">Mime type use Mime class to retrieve string</param>
         /// <param name="res">Response</param>
-        public void SendBinary(byte[] pictureData,string mime,HttpListenerResponse res)//Mime
+        public async void SendBinary(byte[] pictureData,string mime,HttpListenerResponse res)//Mime
         {
             SetHeaders(res, HttpResponseHeader.CacheControl, "Cache", mime);
-            var dataBytes = pictureData;
+            var dataBytes = pictureData;//Encoding.UTF8.GetBytes(data)
             var dataBytesLength = dataBytes.Length;
             res.ContentLength64 = dataBytesLength;
+            await res.OutputStream.WriteAsync(pictureData, 0, dataBytesLength);
             EndRequest(res);
         }
         /// <summary>
@@ -486,16 +587,74 @@ namespace RevatryFramework
             using (var stream = new MemoryStream())
             {
 
-                bmp.Save(stream,format);
+                bmp.Save(stream,format);//System.Drawing.Imaging.ImageFormat.Jpeg
 
                 return stream.ToArray();
 
             }
         }
+
+        /// <summary>
+        /// Escapes html to prevent xss attacks
+        /// </summary>
+        /// <param name="data">The user data</param>
+        /// <returns>Escaped html eg: & becomes &amp; displayed as & and other stuff has their stuff </returns>
+        public string HtmlSpecialChars(string data)
+        {
+            return data.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;").Replace("\"", "&#34;");
+
+        }
+        /// <summary>
+        /// Converts escaped html to back usable html
+        /// </summary>
+        /// <param name="data">Data</param>
+        /// <returns>Conversion</returns>
+        public string SpecialCharsHtml(string data)
+        { return data.Replace("&amp;", "&").Replace("&lt;", "<").Replace("&gt;", ">").Replace("&#34;", "\""); }
+
+        /// <summary>
+        /// Gets post variable sent
+        /// </summary>
+        /// <param name="value">To search</param>
+        /// <returns>if it doesnt finds it going to return null</returns>
+        public string GetBody(string value,HttpListenerRequest req)
+        {
+            /*Console.WriteLine(req.HasEntityBody);
+            if(req.HasEntityBody)
+                return null;
+            Stream postBody = req.InputStream;
+            var reader = new StreamReader(postBody, req.ContentEncoding);
+            Console.WriteLine(reader.ReadToEnd());
+            return "ballbust";//reader.ReadToEnd().Split('=').ToList().Find(x => x == value)*/
+            if (!req.HasEntityBody)
+            {
+                return null;
+            }
+            Stream linked = req.InputStream;
+            using (System.IO.Stream body = linked) // here we have data
+            {
+                using (var reader = new System.IO.StreamReader(body, req.ContentEncoding))
+                {
+                    var dt = reader.ReadToEnd().Split('=').ToList();
+                    var index = dt.FindIndex(x => x == value);
+                    return dt[index+1];
+                }
+            }
         }
 
+
+        public string EncodeUrlEntity(string data)
+        {
+            return data.Replace(" ", "%20").Replace("!", "%21").Replace("*", "%2A").Replace("+", "%2B").Replace("\"", "%22").Replace("@","%40");
+        }
+        public string DecodeUrlEntity(string data)
+        {
+            return data.Replace("%20", " ").Replace("%21", "!").Replace("%2A", "*").Replace("%2B", "+").Replace("%22", "\"").Replace("%40", "@");
+        }
+    }
+
     public class HttpServerNotInitalizedException: Exception{
-        public HttpServerNotInitalizedException():base("You did not started the server") 
+        public HttpServerNotInitalizedException():base("You did not started the server") //string ex
         {
 
         }
