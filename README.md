@@ -1,10 +1,8 @@
 # Revatry
 An alternative web framework for .NET
 
-Some parts of this project is async performance not being tested yet.
-
-Planning to do some stress test.
-
+Info:
+Pages runs on different tasks
 
 
 I done this very quickly there might be bugs please make issue request if you seen a bug,
@@ -21,10 +19,14 @@ It does supports
 - Templating using regex
 - Html appending on every page so like navbars/sidebars could be easily done
 - A custom database system 
+- Supports GET,POST,PUT,DELETE (for rest apis)
+- Time conversion for human readable format
 
 Planned:
 
-- Html Compression (server side
+- Html Compression (server side)
+- Sql Parser ( sql injection proof, forced prepared statements, database currently uses linq for some stuff )
+- Custom Http/https server for other operating systems
 
 
 Dependencies:
