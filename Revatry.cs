@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -131,13 +131,11 @@ namespace RevatryFramework
         ///Listen for get requests (GET) for (POST) <code>ListenForData</code>
         ///<code>Listen()</code> Should been called before
         ///</summary>
-        public async void ListenForPages() //,string message Get Action<HttpListenerResponse> method
+        public async void ListenForPages()
         {
-
-            //string dir,
-            while (!serverStop)//serverstop
+            while (!serverStop)
            {
-                 //dt = null;
+       
 
                 var dt = await server.GetContextAsync();
                 var req = dt.Request;
@@ -150,7 +148,7 @@ namespace RevatryFramework
                
                 var urlSize = url.Length;
 
-                //var dirData = dir.Split('/');
+
 
                 /*Redirect Web Socket requests to the Socketineer
                  * Windows 8/ Windows Server 2012/ Windows 10 / Windows Server 2016+ Is required
@@ -163,7 +161,7 @@ namespace RevatryFramework
                 }
 
                 //This is for supporting virtual directories
-                string fullurl = "";//UU
+                string fullurl = "";
                 int completion = 0;
 
                 for (int i = 0; i < urlSize - 1 ; i++)
@@ -180,9 +178,9 @@ namespace RevatryFramework
 
                 if (completion == urlSize - 1)
                     {
-                        if (pages.Exists(find => find.relativePath == fullurl ))//dirData[i] Find url[i + 1]
+                        if (pages.Exists(find => find.relativePath == fullurl ))
                         {
-                        var id = pages.FindIndex(find => find.relativePath == fullurl);//url[i + 1]
+                        var id = pages.FindIndex(find => find.relativePath == fullurl);
 
                                                                                 //Use method to do extra stuff
                             if (req.HttpMethod.ToUpper() == "GET")
