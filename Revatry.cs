@@ -40,8 +40,6 @@ namespace RevatryFramework
 
         public string sessionName = "Session";
 
-        // public Database db = new Database();
-
         public List<FELib> feLibs = new List<FELib>();//ArrayList()
 
         
@@ -93,7 +91,6 @@ namespace RevatryFramework
         public async void Send(string data,HttpListenerResponse res)
         {
 
-            //res.
             try
             {
                 var dataBytes = Encoding.UTF8.GetBytes(data);
@@ -108,7 +105,6 @@ namespace RevatryFramework
                 catch (HttpListenerException)
                 {
                     //Temporary Fix: Proper fix going to be done in future
-                    //Console.WriteLine("Too many requests done");
                 }
             }
             catch (ObjectDisposedException)
@@ -163,7 +159,7 @@ namespace RevatryFramework
                 if (dt.Request.IsWebSocketRequest)
                 {
                    
-                    //ProcessRequest(listenerContext);
+                    
                 }
 
                 //This is for supporting virtual directories
@@ -180,8 +176,7 @@ namespace RevatryFramework
                        
                     }
                 }
-                // Console.WriteLine(completion);
-                // Console.WriteLine(fullurl);
+
 
                 if (completion == urlSize - 1)
                     {
@@ -200,29 +195,23 @@ namespace RevatryFramework
                                     get.Dispose();
                                 if (get.IsFaulted)
                                     TaskReporting(ref get, fullurl);
-                                    //get.Dispose();
                                 if (get.IsCanceled)
                                     get.Dispose();
-                                //get.Join();
 
-                                //EndRequest(res);
                             }
-                            //var get = new Thread(() => pages[id].methodToCallGet(res,req), 1024 * 1024);
                         }
                         if (req.HttpMethod.ToUpper() == "POST")
                         {
                             if (pages[id].methodToCallPost != null)
                                 {
-                               // pages[id].methodToCallPost(res, req);
                                  Task post = new Task(() => pages[id].methodToCallPost(res, req));//)
                                   post.Start();
                                   if (post.IsCompleted)
                                       post.Dispose();
                                   if (post.IsFaulted)
                                     TaskReporting(ref post, fullurl);
-                                //post.Dispose();
                                 if (post.IsCanceled)
-                                      post.Dispose();/**/
+                                      post.Dispose();
                             }
                             }
                         if (req.HttpMethod.ToUpper() == "PUT")
@@ -253,7 +242,6 @@ namespace RevatryFramework
                                     delete.Dispose();
                             }
                         }
-                        //  method(res);
                     }
                         else
                         {
@@ -265,7 +253,6 @@ namespace RevatryFramework
                         }
                     }
                 
-                // }
             }
         }
 
@@ -310,7 +297,6 @@ namespace RevatryFramework
         public static RNGCryptoServiceProvider rng = new RNGCryptoServiceProvider();
         public void SessionGenerate(string session_name,HttpListenerResponse res)
         {
-            //CookieCollection cookies = new CookieCollection();
             Cookie cookie = new Cookie();
             sessionName = session_name;
             cookie.Name = sessionName;
@@ -319,7 +305,6 @@ namespace RevatryFramework
             cookie.Value = session.key;
 
             Sessions.Add(session);
-            //cookies.Add(cookie);
             res.SetCookie(cookie);
         }
         /// <summary>
@@ -327,24 +312,24 @@ namespace RevatryFramework
         /// </summary>
         /// <param name="req"></param>
         /// <returns>Session object variables list</returns>
-        public List<SessionVariable> GetSessionVariables(HttpListenerRequest req) // object
+        public List<SessionVariable> GetSessionVariables(HttpListenerRequest req) 
         {
-            return Sessions.Find(x => x.key == req.Cookies[sessionName].Value).variables;//"Session"
+            return Sessions.Find(x => x.key == req.Cookies[sessionName].Value).variables;
         }
         public void SetSessionName(string name)
         { sessionName = name; }
-        public SessionVariable GetSessionVariable(HttpListenerRequest req,string name) // object
+        public SessionVariable GetSessionVariable(HttpListenerRequest req,string name) 
         {
             var varhold = Sessions.Find(x => x.key == req.Cookies[sessionName].Value).variables;
-            return varhold.Find(x => x.name == name);//"Session"
+            return varhold.Find(x => x.name == name);
         }
 
         public void ResetSessionValues(HttpListenerRequest req)
         {
             var id = Sessions.FindIndex(x => x.key == req.Cookies[sessionName].Value);
-            Sessions[id].variables = new List<SessionVariable>(); // object
+            Sessions[id].variables = new List<SessionVariable>();
         }
-        public void AddSessionVariable(HttpListenerRequest req, SessionVariable obj)//object
+        public void AddSessionVariable(HttpListenerRequest req, SessionVariable obj)
         {
 
             var id = Sessions.FindIndex(x => x.key == req.Cookies[sessionName].Value);
@@ -379,8 +364,8 @@ namespace RevatryFramework
                 var valueKeeper = toReturn = Sessions.Find(x => x.key == req.Cookies[sessionName].Value).key;
                 if(valueKeeper != null)
                     toReturn = valueKeeper;
-            }/**/
-                return toReturn ;//"Session"
+            }
+                return toReturn ;
         }
 
         /// <summary>
@@ -389,10 +374,7 @@ namespace RevatryFramework
         public string TemplatingReplace(string variable,string toReplace,string html)
         {
             var code = "!!" + variable;
-            //var regex = new Regex(@"\b" + Regex.Escape(code));// + @"\b"
-            //var t = Regex.IsMatch(html, @"\b"+variable);
-            //Console.Write(t);
-            return new Regex(@"\b" + Regex.Escape(variable)).Replace(html, toReplace);// regex.Replace(html, toReplace); ;//" \+brst+"+"\b"
+            return new Regex(@"\b" + Regex.Escape(variable)).Replace(html, toReplace);
         }
 
 
@@ -466,7 +448,7 @@ namespace RevatryFramework
         }
         public string SendHtmlEnd()
         {
-            return "</body></html>"; //Send(, res);
+            return "</body></html>";
             
         }
         /// <summary>
@@ -496,7 +478,7 @@ namespace RevatryFramework
                     break;
                 default:
                     break;
-            }//if(requestType) == HTTPReqs.GET
+            }
 
             using (HttpWebResponse response = (HttpWebResponse) request.GetResponse())
             {
@@ -587,7 +569,7 @@ namespace RevatryFramework
             using (var stream = new MemoryStream())
             {
 
-                bmp.Save(stream,format);//System.Drawing.Imaging.ImageFormat.Jpeg
+                bmp.Save(stream,format)
 
                 return stream.ToArray();
 
@@ -619,13 +601,7 @@ namespace RevatryFramework
         /// <returns>if it doesnt finds it going to return null</returns>
         public string GetBody(string value,HttpListenerRequest req)
         {
-            /*Console.WriteLine(req.HasEntityBody);
-            if(req.HasEntityBody)
-                return null;
-            Stream postBody = req.InputStream;
-            var reader = new StreamReader(postBody, req.ContentEncoding);
-            Console.WriteLine(reader.ReadToEnd());
-            return "ballbust";//reader.ReadToEnd().Split('=').ToList().Find(x => x == value)*/
+
             if (!req.HasEntityBody)
             {
                 return null;
