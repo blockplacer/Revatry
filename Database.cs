@@ -25,8 +25,8 @@ namespace RevatryFramework
         /// </summary>
         /// <param name="data">The JSON</param>
         /// <returns>Database objects</returns>
-        public static Database LoadFromJSON(string data) //string
-        { return JsonConvert.DeserializeObject<Database>(data); }//JsonConvert.SerializeObject(this);  return
+        public static Database LoadFromJSON(string data)
+        { return JsonConvert.DeserializeObject<Database>(data); }
 
 
 
@@ -58,7 +58,7 @@ namespace RevatryFramework
         {
             var found = Tables.Find(x => x.name == table);
             int id = found.items[found.primary].items.FindIndex(x => (int)x == identifier);
-             return found.items[id].items[id];//.items.ToList().Find(x => x.name == Row).items
+             return found.items[id].items[id];
         }
     }
 
