@@ -515,10 +515,10 @@ namespace RevatryFramework
         /// <param name="pictureData">It could been picture or video etc. data you need use a function to convert it to byte array</param>
         /// <param name="mime">Mime type use Mime class to retrieve string</param>
         /// <param name="res">Response</param>
-        public async void SendBinary(byte[] pictureData,string mime,HttpListenerResponse res)//Mime
+        public async void SendBinary(byte[] pictureData,string mime,HttpListenerResponse res)
         {
             SetHeaders(res, HttpResponseHeader.CacheControl, "Cache", mime);
-            var dataBytes = pictureData;//Encoding.UTF8.GetBytes(data)
+            var dataBytes = pictureData;
             var dataBytesLength = dataBytes.Length;
             res.ContentLength64 = dataBytesLength;
             await res.OutputStream.WriteAsync(pictureData, 0, dataBytesLength);
@@ -537,15 +537,6 @@ namespace RevatryFramework
         /// </summary>
         public void ResetServer()
         { pages.Clear(); Sessions.Clear(); server.Stop(); server.Start(); }
-
-        /// <summary>
-        /// Put this into an infinite loop like connecting into a page going to do run that
-        /// but this going to request to same page
-        /// so infinite loop, this can also be used to simulate a Dos attack or ddos attacks if done on multiple computers/tabs
-        /// </summary>
-        public void StressTest(Page page)
-        { Request(HTTPReqs.GET, page.relativePath); }
-
 
 
         /// <summary>
