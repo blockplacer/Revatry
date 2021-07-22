@@ -337,7 +337,7 @@ namespace RevatryFramework
             if (id == -1)
                 Sessions.Add(new Session(req.Cookies[sessionName].Value));
             Console.WriteLine(id);
-            Sessions[id].variables.Add(obj); //
+            Sessions[id].variables.Add(obj);
         }
         /// <summary>
         /// Destroys a session from the use
@@ -440,7 +440,7 @@ namespace RevatryFramework
             var randomizedString = "";
             for (int i = 0; i < length; i++)
             {
-                randomizedString += alphabet_Array[rnd.Next(0,alphabet_Array.Length-1)];//i
+                randomizedString += alphabet_Array[rnd.Next(0,alphabet_Array.Length-1)];
             }
             return randomizedString;
         }
@@ -628,7 +628,7 @@ namespace RevatryFramework
     }
 
     public class HttpServerNotInitalizedException: Exception{
-        public HttpServerNotInitalizedException():base("You did not started the server") //string ex
+        public HttpServerNotInitalizedException():base("You did not started the server")
         {
 
         }
