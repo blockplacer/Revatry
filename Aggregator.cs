@@ -6,22 +6,7 @@ using System.Threading.Tasks;
 
 namespace RevatryFramework
 {
-    /*public static class Aggregator
-    {
 
-
-
-
-        /// <summary>
-        /// Puts every library for pages on single file so loading time and performance increases significantly
-        /// </summary>
-        /// <returns>Every library combined into one</returns>
-        public static string Aggregate(FELibType type)
-        {
-
-
-        }
-    }*/
     public enum FELibType
     {
         Css,
