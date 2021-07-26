@@ -21,7 +21,7 @@ namespace RevatryFramework
          * main difference from php etc. is
          * you can generate a virtual page without any disk operation!*/
 
-        public string relativePath; //Virtual path, its relative dont add https://example.com/bruh add bruh and dont use "/" it breaks stuff
+        public string relativePath; //Virtual path, its relative dont add https://example.com/bruh add bruh and dont use "/" it breaks stuff unless you using virtual directories correct one going to be like that: bruh/bruh/bruh or bruh but no / on start
 
 
 
