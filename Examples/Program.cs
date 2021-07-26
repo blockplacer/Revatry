@@ -18,7 +18,7 @@ namespace RevatryFramework
         static Database db = new Database();
         static void Main(string[] args)
         {
- revatry.pages.Add(new Page("test",testMethod));
+            revatry.pages.Add(new Page("test",testMethod));
             revatry.pages.Add(new Page("random", randomNumber));
             revatry.pages.Add(new Page("session", session));
             revatry.pages.Add(new Page("sessiongen", sessiongen));
@@ -32,9 +32,9 @@ namespace RevatryFramework
         static void testMethod(HttpListenerResponse res, HttpListenerRequest req)
         {
 
-            //;
+            //Sends data to user
             revatry.Send(revatry.TemplatingReplace("__PLACEHOLDER_TEST", revatry.SendHtmlStart("Test") +"<b>Currently time is: " +DateTime.Now+ "</b>"+ revatry.SendHtmlEnd(), " __PLACEHOLDER_TEST"), res);
-            //;
+            
             revatry.EndRequest(res);
 
         }
@@ -43,14 +43,14 @@ namespace RevatryFramework
 
 
             revatry.Send("<b>Random Number Generator:"+new Random().Next(0,55555)+ "</b>", res);
-            revatry.EndRequest(res);//.
+            revatry.EndRequest(res);
 
         }
         static void session(HttpListenerResponse res,HttpListenerRequest req)
         {
 
             revatry.Send("<b>Key:" + revatry.GetSessionKey(res,req) + "</b>", res);
-            revatry.EndRequest(res);//.
+            revatry.EndRequest(res);
 
         }
         static void sessiongen(HttpListenerResponse res,HttpListenerRequest req)
@@ -63,6 +63,7 @@ namespace RevatryFramework
         static string dbb = db.Serialize();
         static async void googleAsync(HttpListenerResponse res, HttpListenerRequest req)
         {
+            //Proxy
             googly = revatry.Request(HTTPReqs.GET, "https://google.com");
 
             revatry.Send(googly, res);
