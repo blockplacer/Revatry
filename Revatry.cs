@@ -1,4 +1,29 @@
-//MIT LICENSE
+/*
+ ________  _______   ___      ___ ________  _________  ________      ___    ___     
+|\   __  \|\  ___ \ |\  \    /  /|\   __  \|\___   ___\\   __  \    |\  \  /  /|    
+\ \  \|\  \ \   __/|\ \  \  /  / | \  \|\  \|___ \  \_\ \  \|\  \   \ \  \/  / /    
+ \ \   _  _\ \  \_|/_\ \  \/  / / \ \   __  \   \ \  \ \ \   _  _\   \ \    / /     
+  \ \  \\  \\ \  \_|\ \ \    / /   \ \  \ \  \   \ \  \ \ \  \\  \|   \/  /  /      
+   \ \__\\ _\\ \_______\ \__/ /     \ \__\ \__\   \ \__\ \ \__\\ _\ __/  / /        
+    \|__|\|__|\|_______|\|__|/       \|__|\|__|    \|__|  \|__|\|__|\___/ /         
+                                                                   \|___|/          
+                                                                                    
+ 
+    
+
+
+
+Copyright 2021 Blockplacer
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+*/
+
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -41,7 +66,16 @@ namespace RevatryFramework
 
         public string sessionName = "Session";
 
-        public List<FELib> feLibs = new List<FELib>();//ArrayList()
+
+        /// <summary>
+        /// Should errors or potential issues sent to console?
+        /// </summary>
+        public bool errorReporting = true;
+        /// <summary>
+        /// Should prevent exceptions from happening?
+        /// </summary>
+        public bool dontCrash = true;
+        public List<FELib> feLibs = new List<FELib>();
 
         
         /// <summary>
@@ -49,8 +83,6 @@ namespace RevatryFramework
         /// Enable this on production
         /// </summary>
         public bool Aggregation = false;
-
-        //public string LoadLibs = ""; //String for htmlstart stuff a easier thing to put your libs eg: Bulma, Bootstrap, JQuery etc.
 
         //A constructor to initalize objects
         /// <summary>
@@ -92,6 +124,7 @@ namespace RevatryFramework
         public async void Send(string data,HttpListenerResponse res)
         {
 
+            //res.
             try
             {
                 var dataBytes = Encoding.UTF8.GetBytes(data);
@@ -106,6 +139,7 @@ namespace RevatryFramework
                 catch (HttpListenerException)
                 {
                     //Temporary Fix: Proper fix going to be done in future
+                    //Console.WriteLine("Too many requests done");
                 }
             }
             catch (ObjectDisposedException)
@@ -132,11 +166,12 @@ namespace RevatryFramework
         ///Listen for get requests (GET) for (POST) <code>ListenForData</code>
         ///<code>Listen()</code> Should been called before
         ///</summary>
-        public async void ListenForPages()
+        public async void ListenForPages() //,string message Get Action<HttpListenerResponse> method
         {
+
             while (!serverStop)
            {
-       
+                 
 
                 var dt = await server.GetContextAsync();
                 var req = dt.Request;
@@ -149,18 +184,6 @@ namespace RevatryFramework
                
                 var urlSize = url.Length;
 
-
-
-                /*Redirect Web Socket requests to the Socketineer
-                 * Windows 8/ Windows Server 2012/ Windows 10 / Windows Server 2016+ Is required
-                 * */
-
-                if (dt.Request.IsWebSocketRequest)
-                {
-                   
-                    
-                }
-
                 //This is for supporting virtual directories
                 string fullurl = "";
                 int completion = 0;
@@ -169,13 +192,13 @@ namespace RevatryFramework
                     {
                         
                         if (completion !=  urlSize - 1 )
-                    {
-                        fullurl += url[i+1];
-                        completion++;
-                       
-                    }
-                }
+                        {
 
+                            fullurl += url[i+1];
+                            completion++;
+                       
+                        }
+                }
 
                 if (completion == urlSize - 1)
                     {
@@ -183,7 +206,7 @@ namespace RevatryFramework
                         {
                         var id = pages.FindIndex(find => find.relativePath == fullurl);
 
-                                                                                //Use method to do extra stuff
+                             
                             if (req.HttpMethod.ToUpper() == "GET")
                         {
                             if(pages[id].methodToCallGet != null)
@@ -196,14 +219,14 @@ namespace RevatryFramework
                                     TaskReporting(ref get, fullurl);
                                 if (get.IsCanceled)
                                     get.Dispose();
-
                             }
+                            
                         }
                         if (req.HttpMethod.ToUpper() == "POST")
                         {
                             if (pages[id].methodToCallPost != null)
                                 {
-                                 Task post = new Task(() => pages[id].methodToCallPost(res, req));//)
+                                 Task post = new Task(() => pages[id].methodToCallPost(res, req));
                                   post.Start();
                                   if (post.IsCompleted)
                                       post.Dispose();
@@ -241,6 +264,7 @@ namespace RevatryFramework
                                     delete.Dispose();
                             }
                         }
+                        
                     }
                         else
                         {
@@ -252,6 +276,7 @@ namespace RevatryFramework
                         }
                     }
                 
+                // }
             }
         }
 
@@ -296,6 +321,7 @@ namespace RevatryFramework
         public static RNGCryptoServiceProvider rng = new RNGCryptoServiceProvider();
         public void SessionGenerate(string session_name,HttpListenerResponse res)
         {
+            //CookieCollection cookies = new CookieCollection();
             Cookie cookie = new Cookie();
             sessionName = session_name;
             cookie.Name = sessionName;
@@ -304,6 +330,7 @@ namespace RevatryFramework
             cookie.Value = session.key;
 
             Sessions.Add(session);
+            //cookies.Add(cookie);
             res.SetCookie(cookie);
         }
         /// <summary>
@@ -313,11 +340,33 @@ namespace RevatryFramework
         /// <returns>Session object variables list</returns>
         public List<SessionVariable> GetSessionVariables(HttpListenerRequest req) 
         {
-            return Sessions.Find(x => x.key == req.Cookies[sessionName].Value).variables;
+            int id = Sessions.FindIndex(x => x.key == req.Cookies[sessionName].Value);
+            List<SessionVariable> vars = null;
+            if (id == -1)
+            {
+                if(errorReporting)
+                {
+                    if(!dontCrash)
+                    {
+                        Console.WriteLine("Cant find session");
+                    }
+                    else
+                    {
+                        Console.WriteLine("Cant find the session, due revatry.dontCrash being true you might get behaivor not intended");
+                    }
+                }
+                if (dontCrash)
+                    vars = new List<SessionVariable>();
+            }
+            else
+            {
+                vars = Sessions[id].variables;
+            }
+            return vars;
         }
         public void SetSessionName(string name)
         { sessionName = name; }
-        public SessionVariable GetSessionVariable(HttpListenerRequest req,string name) 
+        public SessionVariable GetSessionVariable(HttpListenerRequest req,string name)
         {
             var varhold = Sessions.Find(x => x.key == req.Cookies[sessionName].Value).variables;
             return varhold.Find(x => x.name == name);
@@ -332,6 +381,7 @@ namespace RevatryFramework
         {
 
             var id = Sessions.FindIndex(x => x.key == req.Cookies[sessionName].Value);
+            //Try again if it issue happens
             if (id == -1)
                 Sessions.Add(new Session(req.Cookies[sessionName].Value));
             id = Sessions.FindIndex(x => x.key == req.Cookies[sessionName].Value);
@@ -346,9 +396,18 @@ namespace RevatryFramework
         /// <param name="req"></param>
         public void DestroySession(HttpListenerRequest req)
         {
+            //Find our session
             var id = Sessions.FindIndex(x => x.key == req.Cookies[sessionName].Value);
-            Sessions[id].variables = null;
-            req.Cookies[sessionName].Expired = true;
+            if(id != -1)
+            {
+                Sessions[id].variables = null;
+                req.Cookies[sessionName].Expired = true;
+            }
+            else
+            {
+                if(errorReporting)
+                Console.WriteLine("User doesnt have a session yet!");
+            }
         }
         /// <summary>
         /// Session Key
@@ -402,7 +461,7 @@ namespace RevatryFramework
         /// </summary>
         public void GenerateLoadLibs()
         {
-             LoadLibs = ""; //var
+             LoadLibs = "";
             for (int i = 0; i < feLibs.Count; i++)
             {
                 if(!Aggregation)
@@ -441,7 +500,7 @@ namespace RevatryFramework
             var randomizedString = "";
             for (int i = 0; i < length; i++)
             {
-                randomizedString += alphabet_Array[rnd.Next(0,alphabet_Array.Length-1)];
+                randomizedString += alphabet_Array[rnd.Next(0,alphabet_Array.Length-1)];//i
             }
             return randomizedString;
         }
@@ -474,6 +533,15 @@ namespace RevatryFramework
                     break;
                 case HTTPReqs.GET:
                     request.Method = "GET";
+                    break;
+                case HTTPReqs.PUT:
+                    request.Method = "PUT";
+                    break;
+                case HTTPReqs.PATCH:
+                    request.Method = "PATCH";
+                    break;
+                case HTTPReqs.DELETE:
+                    request.Method = "DELETE";
                     break;
                 default:
                     break;
@@ -516,10 +584,10 @@ namespace RevatryFramework
         /// <param name="pictureData">It could been picture or video etc. data you need use a function to convert it to byte array</param>
         /// <param name="mime">Mime type use Mime class to retrieve string</param>
         /// <param name="res">Response</param>
-        public async void SendBinary(byte[] pictureData,string mime,HttpListenerResponse res)
+        public async void SendBinary(byte[] pictureData,string mime,HttpListenerResponse res)//Mime
         {
             SetHeaders(res, HttpResponseHeader.CacheControl, "Cache", mime);
-            var dataBytes = pictureData;
+            var dataBytes = pictureData;//Encoding.UTF8.GetBytes(data)
             var dataBytesLength = dataBytes.Length;
             res.ContentLength64 = dataBytesLength;
             await res.OutputStream.WriteAsync(pictureData, 0, dataBytesLength);
@@ -538,6 +606,15 @@ namespace RevatryFramework
         /// </summary>
         public void ResetServer()
         { pages.Clear(); Sessions.Clear(); server.Stop(); server.Start(); }
+
+        /// <summary>
+        /// Put this into an infinite loop like connecting into a page going to do run that
+        /// but this going to request to same page
+        /// so infinite loop, this can also be used to simulate a Dos attack or ddos attacks if done on multiple computers/tabs
+        /// </summary>
+        public void StressTest(Page page)
+        { Request(HTTPReqs.GET, page.relativePath); }
+
 
 
         /// <summary>
@@ -559,7 +636,7 @@ namespace RevatryFramework
             using (var stream = new MemoryStream())
             {
 
-                bmp.Save(stream,format)
+                bmp.Save(stream,format);
 
                 return stream.ToArray();
 
@@ -591,7 +668,7 @@ namespace RevatryFramework
         /// <returns>if it doesnt finds it going to return null</returns>
         public string GetBody(string value,HttpListenerRequest req)
         {
-
+            
             if (!req.HasEntityBody)
             {
                 return null;
@@ -617,10 +694,25 @@ namespace RevatryFramework
         {
             return data.Replace("%20", " ").Replace("%21", "!").Replace("%2A", "*").Replace("%2B", "+").Replace("%22", "\"").Replace("%40", "@");
         }
+
+        public bool DoesSessionExist(HttpListenerRequest req)
+        {
+            bool toReturn = false;
+            int test = Sessions.FindIndex(x => x.key == req.Cookies[sessionName].Value);
+            if (test == -1)
+            {
+                toReturn = false;
+            }
+            else
+            {
+                toReturn = true;
+            }
+            return toReturn;
+        }
     }
 
     public class HttpServerNotInitalizedException: Exception{
-        public HttpServerNotInitalizedException():base("You did not started the server")
+        public HttpServerNotInitalizedException():base("You did not started the server") 
         {
 
         }
