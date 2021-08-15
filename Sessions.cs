@@ -17,7 +17,7 @@ namespace RevatryFramework
         public string key = "";
 
 
-        public List<SessionVariable> variables = new List<SessionVariable>();//objectobject
+        public List<SessionVariable> variables = new List<SessionVariable>();
         /// <summary>
         /// A method that generates secure token keys
         /// </summary>
@@ -31,9 +31,7 @@ namespace RevatryFramework
             {
                 key += randomData[i];
             }
-            
-
-
+        
         }
         public Session(string key)
         { this.key = key; }
