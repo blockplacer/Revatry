@@ -12,9 +12,9 @@ namespace RevatryFramework
 
 
 
-        public static void Server(Action<string> OnGetMessage)
+        public static void Server(Action<string> OnGetMessage,Action onOpen,Action onClose, string addr = "ws://0.0.0.0:7000")
         {
-            WebSocketServer server = new WebSocketServer("ws://0.0.0.0:7000");
+            WebSocketServer server = new WebSocketServer(addr);
 
             server.Start(socket =>
 			{

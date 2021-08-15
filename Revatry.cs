@@ -1,4 +1,4 @@
-/*
+﻿/*
  ________  _______   ___      ___ ________  _________  ________      ___    ___     
 |\   __  \|\  ___ \ |\  \    /  /|\   __  \|\___   ___\\   __  \    |\  \  /  /|    
 \ \  \|\  \ \   __/|\ \  \  /  / | \  \|\  \|___ \  \_\ \  \|\  \   \ \  \/  / /    
@@ -172,10 +172,12 @@ namespace RevatryFramework
             while (!serverStop)
            {
                  
-
+                //Context of our server
                 var dt = await server.GetContextAsync();
+                //Request
                 var req = dt.Request;
 
+                //Response
                 var res = dt.Response;
 
                 if (dt == null)
@@ -189,14 +191,11 @@ namespace RevatryFramework
                 int completion = 0;
 
                 for (int i = 0; i < urlSize - 1 ; i++)
-                    {
-                        
-                        if (completion !=  urlSize - 1 )
+                {
+                       if (completion !=  urlSize - 1 )
                         {
-
                             fullurl += url[i+1];
                             completion++;
-                       
                         }
                 }
 
@@ -204,37 +203,37 @@ namespace RevatryFramework
                     {
                         if (pages.Exists(find => find.relativePath == fullurl ))
                         {
-                        var id = pages.FindIndex(find => find.relativePath == fullurl);
+                            var id = pages.FindIndex(find => find.relativePath == fullurl);
 
                              
-                            if (req.HttpMethod.ToUpper() == "GET")
-                        {
-                            if(pages[id].methodToCallGet != null)
-                            {
-                                Task get = new Task(() => pages[id].methodToCallGet(res, req));
-                                get.Start();
-                                if (get.IsCompleted)
-                                    get.Dispose();
-                                if (get.IsFaulted)
-                                    TaskReporting(ref get, fullurl);
-                                if (get.IsCanceled)
-                                    get.Dispose();
-                            }
+                                if (req.HttpMethod.ToUpper() == "GET")
+                                {
+                                    if(pages[id].methodToCallGet != null)
+                                    {
+                                        Task get = new Task(() => pages[id].methodToCallGet(res, req));
+                                        get.Start();
+                                        if (get.IsCompleted)
+                                            get.Dispose();
+                                        if (get.IsFaulted)
+                                            TaskReporting(ref get, fullurl);
+                                        if (get.IsCanceled)
+                                            get.Dispose();
+                                    }
                             
                         }
                         if (req.HttpMethod.ToUpper() == "POST")
                         {
-                            if (pages[id].methodToCallPost != null)
+                                if (pages[id].methodToCallPost != null)
                                 {
-                                 Task post = new Task(() => pages[id].methodToCallPost(res, req));
-                                  post.Start();
-                                  if (post.IsCompleted)
+                                    Task post = new Task(() => pages[id].methodToCallPost(res, req));
+                                    post.Start();
+                                    if (post.IsCompleted)
                                       post.Dispose();
-                                  if (post.IsFaulted)
-                                    TaskReporting(ref post, fullurl);
-                                if (post.IsCanceled)
+                                    if (post.IsFaulted)
+                                        TaskReporting(ref post, fullurl);
+                                    if (post.IsCanceled)
                                       post.Dispose();
-                            }
+                                }
                             }
                         if (req.HttpMethod.ToUpper() == "PUT")
                         {
@@ -302,7 +301,6 @@ namespace RevatryFramework
             catch (ObjectDisposedException)
             {
 
-               // throw;
             }
 
         }
@@ -321,16 +319,16 @@ namespace RevatryFramework
         public static RNGCryptoServiceProvider rng = new RNGCryptoServiceProvider();
         public void SessionGenerate(string session_name,HttpListenerResponse res)
         {
-            //CookieCollection cookies = new CookieCollection();
             Cookie cookie = new Cookie();
             sessionName = session_name;
             cookie.Name = sessionName;
             Session session = new Session();
             session.generate();
+            //Set session key to cookie
             cookie.Value = session.key;
-
+            //Add to sessions
             Sessions.Add(session);
-            //cookies.Add(cookie);
+            //Set the cookie
             res.SetCookie(cookie);
         }
         /// <summary>
@@ -587,7 +585,7 @@ namespace RevatryFramework
         public async void SendBinary(byte[] pictureData,string mime,HttpListenerResponse res)//Mime
         {
             SetHeaders(res, HttpResponseHeader.CacheControl, "Cache", mime);
-            var dataBytes = pictureData;//Encoding.UTF8.GetBytes(data)
+            var dataBytes = pictureData;
             var dataBytesLength = dataBytes.Length;
             res.ContentLength64 = dataBytesLength;
             await res.OutputStream.WriteAsync(pictureData, 0, dataBytesLength);
